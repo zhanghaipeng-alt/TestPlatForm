@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block css %}
+.main-card {background-color: #f2f2f2}
+{% endblock %}
+
+{% block breadcrumb %}
+<a href="">首页</a>
+<a href=""><cite>性能测试</cite></a>
+{% endblock%}
+
+{% block content %}
+<div class="lay-row" id="content">
+    {% if clients|length > 0 %}
+    {% for client in clients %}
+    <div class="layui-col-md4 lay-col-sm4" style="margin-top: 10px">
+        <div class="layui-card">
+          <div class="layui-card-header" style="font-weight: bold; font-size: 18px">
+              slave地址：{{ client.client_id }}
+              <i class="project-delete layui-icon layui-icon-reduce-circle" style="cursor:pointer; font-size: 20px; color: #FF5722;float: right"></i>
+              <i class="project-edit layui-icon layui-icon-edit" style="cursor:pointer; font-size: 20px; color: #009688;float: right; margin-right: 5px"></i>
+          </div>
+
+          <div class="layui-card-body" style="font-size: 16px; cursor:pointer;height: 300px">
+              <table class="layui-table" lay-even="" lay-skin="nob">
+                  <colgroup>
+                    <col width="200">
+                    <col width="100">
+                  </colgroup>
+                  <thead>
+                    <tr>
+                      <th>项目</th>
+                      <th>数据</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td style="">CPU核心数</td>
+                      <td>{{ client.data.cpu_core }}</td>
+                    </tr>
+                    <tr>
+                      <td>节点机状态</td>
+                      <td>{{ client.status}}</td>
+                    </tr>
+                    <tr>
+                      <td>CPU利用率</td>
+                      <td>{{ client.data.cpu_percent }}%</td>
+                    </tr>
+                    <tr>
+                      <td>内存利用率</td>
+                      <td>{{ client.data.mem_percent }}%</td>
+                    </tr>
+                    <tr>
+                      <td>空闲内存</td>
+                      <td>{{ client.data.mem_free }}MB</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <form id="ExcelForm" enctype="multipart/form-data" class="layui-form" action="/api/upload/" method="post">
+                  <div class="layui-form-item">
+                    <label class="layui-form-label">上传脚本</label>
+                    <div class="layui-input-block">
+                      <input type="file" name="fileName" id="fileName" required  lay-verify="required" class="layui-input" style="margin-top: 10px">
+                    </div>
+                  </div>
+                </form>
+          </div>
+        </div>
+    </div>
+    {% endfor %}
+    {% else %}
+        <p3 >没有活动的节点机</p3>
+    {% endif %}
+</div>
+
+<!--script每隔5秒钟重新刷新页面一次，但是刷新的是整个页面-->
+<script>
+ setTimeout(function(){
+   window.location.reload();
+  }, 5000);
+</script>
+
+<!--局部刷新的方法，减少整体页面刷新-->
+<!--<script>-->
+<!--    $(document).ready(function () {-->
+<!--        setInterval(function(){-->
+<!--            $("#content").load(location.href + " #content>*", "");-->
+<!--        }, 5000);-->
+<!--    });-->
+<!--</script>-->
+{% endblock %}

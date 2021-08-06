@@ -1,0 +1,304 @@
+{% extends 'base.html' %}
+
+{% block breadcrumb %}
+<a href="">首页</a>
+<a href="">接口管理</a>
+<a href=""><cite>接口信息列表</cite></a>
+{% if project %}
+    <a href=""><span class="layui-badge layui-bg-green" style="font-size: 16px;">{{project.name}}</span></a>
+{% else %}
+    <a href=""><span class="layui-badge layui-bg-green" style="font-size: 16px;">全部项目</span></a>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+
+    <div class="layui-card">
+          <div class="layui-card-header">
+            <div class="layui-row">
+                <div class="layui-col-lg4 layui-col-md4" style="text-align: left">
+                    <a class="layui-btn layui-btn-normal" href="/api/new/?pid={{ project.id }}">手动单条新增</a>
+                    <button class="swagger layui-btn layui-btn-primary">swagger导入</button>
+                    <button class="excel layui-btn layui-btn-primary">Excel批量上传</button>
+                </div>
+                <div class="layui-col-lg4 layui-col-md4 layui-col-md-offset4" style="text-align: right">
+                    <form class="layui-form">
+                        <div class="layui-form-item">
+                          <div class="layui-inline" style="text-align: left">
+                              <div class="layui-input-inline" style="width: 150px;">
+                                <select name="project" lay-filter="search">
+                                    <option selected="selected" value="None">方法类型</option>
+                                    <option value="0">GET</option>
+                                    <option value="1">POST</option>
+                                </select>
+                              </div>
+                          </div>
+
+                          <div class="layui-inline" style="text-align: left">
+                              <div class="layui-input-inline" style="width: 150px;">
+                                <input name="kw" class="layui-input" type="text" placeholder="请输入搜索关键词">
+                              </div>
+                          </div>
+                          <i style="font-size: 20px;cursor:pointer " class="layui-icon layui-icon-search" data-type="reload"></i>
+                        </div>
+                    </form>
+                </div>
+            </div>
+          </div>
+          <div class="layui-card-body">
+              <table class="layui-table" id="apis" lay-filter="demo">
+              </table>
+              <script type="text/html" id="barDemo">
+                <button class="layui-btn layui-btn-sm layui-btn-normal" lay-event="create_case">创建用例</button>
+                <button style="margin-left: 5px" class="layui-btn layui-btn-sm layui-btn-warm" lay-event="edit">编辑接口</button>
+                <button style="margin-left: 5px" class="layui-btn layui-btn-sm layui-btn-danger" lay-event="delete">删除接口</button>
+              </script>
+{#              <table class="layui-table">#}
+{#                  <thead>#}
+{#                    <tr>#}
+{#                      <th>接口名称</th>#}
+{#                      <th>方法类型</th>#}
+{#                      <th>请求地址</th>#}
+{#                      <th>最后更新</th>#}
+{#                      <th>操作</th>#}
+{#                    </tr>#}
+{#                  </thead>#}
+{#                  <tbody>#}
+{#                  {% if apis|length > 0 %}#}
+{#                  {% for api in apis %}#}
+{#                    <tr>#}
+{#                      <td>{{api.name}}</td>#}
+{#                      {% if api.method == 0 %}#}
+{#                        <td><span class="layui-badge layui-bg-blue">GET</span></td>#}
+{#                      {% elif api.method == 1 %}#}
+{#                        <td><span class="layui-badge layui-bg-orange">POST</span></td>#}
+{#                      {% endif %}#}
+{#                      <td>{{api.url}}</td>#}
+{#                      <td>{{api.update_time|date:"Y-m-d H:i:s"}}</td>#}
+{#                      <td>#}
+{#                          <button class="layui-btn layui-btn-sm layui-btn-normal">创建用例</button>#}
+{#                          <button style="margin-left: 5px" class="layui-btn layui-btn-sm layui-btn-warm">编辑接口</button>#}
+{#                          <button style="margin-left: 5px" class="layui-btn layui-btn-sm layui-btn-danger">删除接口</button>#}
+{#                      </td>#}
+{#                    </tr>#}
+{#                  {% endfor %}#}
+{#                  {% else %}#}
+{#                      <h2 style="color: #FF5722">该项目下暂无接口信息</h2>#}
+{#                  {% endif %}#}
+{#                  </tbody>#}
+{#              </table>#}
+          </div>
+    </div>
+
+    <div class="layui-row" id="excel" style="display: none">
+            <div class="layui-col-md10">
+                <form enctype="multipart/form-data" class="layui-form" action="/api/new/upload/" style="margin-top: 50px">
+                  <div class="layui-form-item">
+                    <label class="layui-form-label" style="font-weight: bold">上传文件</label>
+                    <div class="layui-input-block">
+                      <input style="display: none" value="{{ project.id }}" type="text" name="pid" class="layui-input">
+                      <input maxlength="10" type="file" id="fileName" name="file" lay-verify="required"  class="layui-input">
+                    </div>
+                  </div>
+                  <div class="layui-form-item">
+                    <label class="layui-form-label" style="font-weight: bold">已存在用例</label>
+                    <div class="layui-input-block">
+                        <input type="radio" name="over" value="0" title="跳过" checked>
+                        <input type="radio" name="over" value="1" title="覆盖">
+                    </div>
+                  </div>
+
+                  <div class="layui-form-item" style="margin-top: 50px">
+                    <div class="layui-input-block">
+                      <button class="layui-btn" lay-submit lay-filter="add">确定</button>
+                      <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                    </div>
+                  </div>
+                </form>
+            </div>
+        </div>
+
+    <div class="layui-row" id="swagger" style="display: none">
+            <div class="layui-col-md10">
+                <form class="layui-form" action="/api/new/swagger/" method="post" style="margin-top: 50px;white-space:nowrap!important;">
+                  <div class="layui-form-item">
+                    <label class="layui-form-label" style="font-weight: bold;">API文档地址</label>
+                    <div class="layui-input-block">
+                      <input style="display: none" value="{{ project.id }}" type="text" name="pid" class="layui-input">
+                      <input type="text" name="url" lay-verify="required|url"  class="layui-input">
+                    </div>
+                  </div>
+                  <div class="layui-form-item">
+                    <label class="layui-form-label" style="font-weight: bold">已存在用例</label>
+                    <div class="layui-input-block">
+                        <input type="radio" name="over" value="0" title="跳过" checked>
+                        <input type="radio" name="over" value="1" title="覆盖">
+                    </div>
+                  </div>
+                  <div class="layui-form-item" style="margin-top: 50px">
+                    <div class="layui-input-block">
+                      <button enabled="false" id="swagger-submit" style="background-color: #4476A7" class="layui-btn" lay-submit lay-filter="swagger">确定
+                          <i id="loading" style="margin-left: 5px;display: none" class="layui-icon layui-icon-loading layui-anim layui-anim-rotate layui-anim-loop"></i>
+                      </button>
+                      <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                    </div>
+                  </div>
+                </form>
+            </div>
+        </div>
+{% endblock %}
+
+{% block js %}
+
+var method_type;
+
+$(".excel").click(function(){
+    layer.open({
+      type: 1,
+      title: "Excel批量上传",
+      skin: 'layui-layer-molv',
+      content: $('#excel'),
+      area: ['600px', '400px'],
+    });
+    });
+
+$(".swagger").click(function(){
+    layer.open({
+      type: 1,
+      title: "Swagger在线文档导入",
+      skin: 'layui-layer-lan',
+      content: $('#swagger'),
+      area: ['600px', '400px'],
+    });
+    });
+
+layui.use('form', function(){
+  form = layui.form;
+
+  form.on('select(search)', function(data){
+    method_type = data.value;
+  });
+
+  form.on('submit(add)', function(data){
+    var formData = new FormData();
+    formData.append("file",$("#fileName")[0].files[0]);
+    formData.append("pid",data.field.pid);
+    formData.append("over",data.field.over);
+    $.ajax({
+        type : "post",
+        url : "/api/new/upload/",
+        data : formData,
+        processData : false,
+        contentType : false,
+        success : function(data){
+            if (data.code == 0) {
+                layer.msg(data.msg, {time: 2000});
+                setTimeout(function () { window.location.reload();}, 2000);
+            }else{
+                layer.msg(data.msg, {time: 2000});
+        }}
+    });
+      return false;
+  });
+
+  form.on('submit(swagger)', function(data){
+      $.ajax({
+            type : "post",
+            url : "/api/new/swagger/",
+            data : data.field,
+            timeout: 30000,
+            contentType : "application/x-www-form-urlencoded",
+            beforeSend:function(XMLHttpRequest){
+                $("#loading").show();
+                $('#swagger-submit').attr("disabled", "disabled");
+            },
+            error:function(XMLHttpRequest,textStatus,errorThrown){
+                $("#loading").hide();
+                layer.msg("导入失败", {time: 2000});
+                $('#swagger-submit').removeAttr("disabled");
+            },
+            success : function(result){
+                $("#loading").hide();
+                $('#swagger-submit').removeAttr("disabled");
+                if (result.code==0) {
+                    layer.msg(result.msg, {time: 2000});
+                    setTimeout(function () { window.location.reload();}, 3000);
+                }else{
+                    layer.msg(result.msg, {time: 2000});
+            }}
+      });
+      return false;
+  });
+
+layui.use('table', function(){
+  var table = layui.table;
+  table.render({
+    elem: '#apis'
+    ,url: '/api/get_infos/?pid={{ project.id }}'
+    ,cols: [[
+      {field:'id', width:100, title: 'ID', sort: true}
+      ,{field:'name', title: '接口名称'}
+      ,{field:'method', width:100, title: '方法类型'}
+      ,{field:'url', title: '请求地址'}
+      ,{field:'update_time', title: '最后更新', sort: true}
+      ,{fixed: 'right', width:300, align:'center', toolbar: '#barDemo'}
+    ]]
+    ,page: true
+    ,id: 'testReload'
+  });
+
+  table.on('tool(demo)', function(obj){
+    var data = obj.data;
+    if(obj.event === 'delete'){
+        layer.open({
+          type: 0,
+          title: '确认删除',
+          content: '<h3>是否删除该接口？</h3>',
+          btn: ['确定', '取消'],
+          yes: function(index, layero){
+            $.post('/api/delete/', {id:data.id}, function (data) {
+                if (data.code == 0){
+                     layer.msg(data.msg, {time: 2000});
+                     setTimeout(function () { window.location.reload();}, 2000);
+                }else if(data.code == 1){
+                    layer.msg(data.msg, {time: 2000});
+                }
+            });
+          }
+        });
+    } else if(obj.event === 'edit'){
+      window.location.href = '/api/edit_index/?pid={{ project.id }}&id='+data.id
+    } else if(obj.event === 'create_case'){
+      window.location.href = '/case/new/?pid={{ project.id }}&aid='+data.id
+    }
+  });
+
+  var $ = layui.$, active = {
+    reload: function(){
+      var kw = $("input[name=kw]").val();
+      //执行重载
+      table.reload('testReload', {
+        page: {
+          curr: 1 //重新从第 1 页开始
+        }
+        ,where: {
+            method: method_type,
+            kw: kw
+        }
+      }, 'data');
+    }
+  };
+
+  $('i.layui-icon-search').on('click', function(){
+    var type = $(this).data('type');
+    active[type] ? active[type].call(this) : '';
+
+  });
+
+});
+
+
+
+});
+
+{% endblock %}

@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+
+{% block breadcrumb %}
+<a href="">首页</a>
+<a href="">用例管理</a>
+<a href=""><cite>接口用例列表</cite></a>
+{% endblock %}
+
+{% block content %}
+
+    <div class="layui-card">
+          <div class="layui-card-header">
+            <div class="layui-row">
+                <div class="layui-col-lg9 layui-col-md9">
+                    <form class="layui-form">
+                        <div class="layui-form-item">
+                          <div class="layui-inline" style="text-align: left">
+                              <div class="layui-input-inline" style="width: 150px;">
+                                <select name="project" lay-filter="search">
+                                    <option selected="selected" value="0">所属项目</option>
+                                    {% for project in projects %}
+                                        <option value="{{ project.id }}">{{ project.name }}</option>
+                                    {% endfor %}
+                                </select>
+                              </div>
+                          </div>
+                          <div class="layui-inline" style="text-align: left">
+                              <div class="layui-input-inline" style="width: 150px;">
+                                <input name="kw" class="layui-input" type="text" placeholder="接口名称">
+                              </div>
+                          </div>
+                          <i style="font-size: 20px;cursor:pointer " class="layui-icon layui-icon-search" data-type="reload"></i>
+                        </div>
+                    </form>
+                </div>
+            </div>
+          </div>
+          <div class="layui-card-body">
+              <table class="layui-table" id="cases" lay-filter="demo">
+              </table>
+              <script type="text/html" id="barDemo">
+                <button class="layui-btn layui-btn-sm layui-btn-normal" lay-event="run">运行</button>
+                <button style="margin-left: 5px" class="layui-btn layui-btn-sm layui-btn-warm" lay-event="edit">编辑</button>
+                <button style="margin-left: 5px" class="layui-btn layui-btn-sm layui-btn-danger" lay-event="delete">删除</button>
+              </script>
+          </div>
+    </div>
+
+{% endblock %}
+
+{% block js %}
+
+var project;
+
+layui.use('form', function(){
+  form = layui.form;
+  form.on('select(search)', function(data){
+    project = data.value;
+  });
+});
+
+layui.use('table', function(){
+  var table = layui.table;
+  table.render({
+    elem: '#cases'
+    ,url: '/case/get_infos/'
+    ,cols: [[
+      {field:'id', width:80, title: 'ID', sort: true}
+      ,{field:'name', title: '用例名称'}
+      ,{field:'desc', title: '描述'}
+      ,{field:'pname', width:200, title: '所属项目'}
+      ,{field:'aname', title: '所属接口'}
+      ,{field:'update_time', width:200, title: '最后更新', sort: true}
+      ,{fixed: 'right', width:200, align:'center', toolbar: '#barDemo'}
+    ]]
+    ,page: true
+    ,id: 'testReload'
+  });
+
+  table.on('tool(demo)', function(obj){
+    var data = obj.data;
+    if(obj.event === 'delete'){
+        layer.open({
+          type: 0,
+          title: '确认删除',
+          content: '<h3>是否删除该用例？</h3>',
+          btn: ['确定', '取消'],
+          yes: function(index, layero){
+            $.post('/case/delete/', {cid:data.id}, function (data) {
+                if (data.code == 0){
+                     layer.msg(data.msg, {time: 2000});
+                     setTimeout(function () { window.location.reload();}, 2000);
+                }else if(data.code == 1){
+                    layer.msg(data.msg, {time: 2000});
+                }
+            });
+          }
+        });
+    } else if(obj.event === 'edit'){
+      alert("开发编辑功能");
+    } else if(obj.event === 'run'){
+        $.post('/case/single_run/', {cid:data.id}, function(result){
+          if(result.code == 0){
+              layer.open({
+                type: 1
+                ,title: false //不显示标题栏
+                ,closeBtn: false
+                ,area: ['1000px', '600px']
+                ,shade: 0.8
+                ,id: 'LAY_layuipro' //设定一个id，防止重复弹出
+                ,btn: ['关闭']
+                ,btnAlign: 'c'
+                ,moveType: 1 //拖拽模式，0或者1
+                ,content: '<div class="layui-card-body single-run"><table class="layui-table" id="single-run" lay-filter="single-run"><tbody><tr><td>响应状态码：</td><td>'+result.status_code+'</td></tr><tr style="height: 400px"><td>响应正文：</td><td>'+result.res_body+'</td></tr></tbody></table></div>'
+              });
+          }else if(data.code == 1){
+              layer.msg(data.msg, {time: 2000});
+          }
+
+        });
+    }
+  });
+
+  var $ = layui.$, active = {
+    reload: function(){
+      var kw = $("input[name=kw]").val();
+      //执行重载
+      table.reload('testReload', {
+        page: {
+          curr: 1 //重新从第 1 页开始
+        }
+        ,where: {
+            project: project,
+            kw: kw
+        }
+      }, 'data');
+    }
+  };
+
+  $('i.layui-icon-search').on('click', function(){
+    var type = $(this).data('type');
+    active[type] ? active[type].call(this) : '';
+  });
+
+});
+
+{% endblock %}

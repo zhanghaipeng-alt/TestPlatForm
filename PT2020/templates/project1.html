@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+
+{% block css%}
+    .main-content {background- : #f2f2f2}
+    .layui-col-md4.layui-card-body {height: 200px}
+    .layui-form {margin-top: 40px}
+{% endblock %}
+
+{% block content %}
+    <div>
+        <div class="layui-row layui-col-space20">
+            {% for project in projects%}
+            <div class="layui-col-md4 layui-col-sm4" style="margin-bottom: 20px">
+                <div class="layui-card" style="cursor: pointer">
+                  <i pid="{{project.id}}" class="layui-icon layui-icon-delete" style="cursor: pointer; font-size: 25px; color: #FF5722; float: right; margin-top: 10px; margin-left: 5px"></i>
+                  <i pid="{{project.id}}" class="layui-icon layui-icon-edit" style="cursor: pointer; font-size: 25px; color:#009688; float: right; margin-top: 10px"></i>
+                  <div class="layui-card-header" style="font-weight: bold; font-size: 18px" >{{project.name}}</div>
+                  <div class="layui-card-body" style="font-size: 16px;height: 120px">
+                      {{project.desc}}
+                  </div>
+                </div>
+            </div>
+
+            <div style="display: none">
+                <div class="layui-row edit-card-{{project.id}}">
+                    <div class="layui-col-md5 layui-col-sm5">
+                        <form class="layui-form" ation="">
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">项目名称</label>
+                                <div class="layui-input-block">
+                                    <input value="{{project.name}}" type="text" name="title" required  lay-verify="required" placeholder="最多10个字" autocomplete="off" class="layui-input">
+                                </div>
+                            </div>
+
+                            <div class="layui-form-item layui-form-text">
+                                <label class="layui-form-label">项目介绍</label>
+                                <div class="layui-input-block">
+                                    <textarea name="desc" placeholder="最多30个字符" class="layui-textarea">{{project.desc}}</textarea>
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <div class="layui-input-block">
+                                    <button class="layui-btn" lay-submit lay-filter="edit-submit">立即提交</button>
+                                    <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
+            <div class="layui-col-md4 layui-col-sm4" style="margin-bottom: 20px">
+                <div class="layui-card add-card" style="cursor: pointer">
+                  <div class="layui-card-header"  style="font-weight: bold; font-size: 18px;color: #1E9FFF;">新增项目</div>
+                    <i class="layui-icon layui-icon-add-circle" style="font-size: 60px; color: #1E9FFF;position: absolute;top: 50%;left: 40%;"></i>
+                  <div class="layui-card-body" style="font-size: 16px;height: 120px">
+<!--                    <i class="layui-icon layui-icon-add-circle" style="font-size: 60px; color: #1E9FFF; position:absolute; top: 40%; left: 40%"></i>-->
+                  </div>
+                </div>
+            </div>
+        </div>
+    </div>
+            <div style="display: none">
+                <div class="layui-row new-card">
+            <div class="layui-col-md10 layui-col-sm10">
+                <form class="layui-form" ation="">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">项目名称</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="title" required  lay-verify="required" placeholder="最多10个字" autocomplete="off" class="layui-input">
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item layui-form-text">
+                        <label class="layui-form-label">项目内容</label>
+                        <div class="layui-input-block">
+                            <textarea name="desc" placeholder="最多30个字符" class="layui-textarea"></textarea>
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <div class="layui-input-block">
+                            <button class="layui-btn" lay-submit lay-filter="formDemo">立即提交</button>
+                            <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+            </div>
+
+
+
+{% endblock %}
+
+{% block js %}
+$(".layui-icon-delete").click(function(){
+    var pid = $(this).attr('pid');
+    layer.open({
+        type: 0,
+        content: '是否确认删除该项目',
+        btn: ['确定', '取消']
+        yes: function(index, layero){
+            //调用ajax请求删除接口
+            $.post('/api/project/delete/', {pid:pid}, function(data){
+                if(data.code === 0){
+                    layer.msg(data.msg, {time: 2000}, function(){
+                        window.location.reload()；
+                    });
+                } else if(data.code == 1){
+                    alter(data.msg);
+                }
+            });
+        }
+    });
+});
+
+$(".layui-icon-edit").click(function(){
+    var pid = $(this).attr('pid');
+    layer.open({
+        type: 1,
+        title: '编辑项目',
+        content: $(".edit-card-"+pid).html(),
+        area: ['600px', '400px']
+    });
+});
+
+$(".add-card").click(function(){
+    layer.open({
+        type: 1,
+        title: '新增项目',
+        content: $(".new-card").html(),
+        area: ['600px', '400px']
+    });
+});
+
+layui.use('form', function(){
+    form = layui.form;
+    form.on('submit(edit-submit)', function(data){
+        pid = data.field.pid
+        title = data.field.title
+        desc = data.field.desc
+        base_url = data.field.base_url
+        $.post('/api/project/edit/', {pad:pid, title:title, desc:desc, base_url:base_url}, function(result){
+            if(result.code == 0){
+                layer.msg(result.msg, {time: 2000});
+                setTimeout(function(){window.location.reload();}, 2000)
+            }else if(result.code == 1){
+                layer.msg(result.msg, {time: 2000});
+            }
+        });
+    });
+});
+
+
+{% endblock %}
+

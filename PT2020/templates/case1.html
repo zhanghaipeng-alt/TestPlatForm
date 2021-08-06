@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+
+{% block breadcrumb %}
+<a href="">首页</a>
+<a href="">接口管理</a>
+<a href=""><cite>用例列表</cite></a>
+{% endblock %}
+
+{% block content %}
+{% if project != None %}
+<div class="layui-card">
+    <div class="layui-card-header">
+        <div class="layui-row">
+            <div class="layui-col-md4 layui-col-sm4">
+                <a href="/case/new/" class="layui-btn">单条新增</a>
+                <button class="layui-btn" id="excel">Excel导入</button>
+            </div>
+
+            <div class="layui-col-md4 layui-col-sm4 layui-col-md-offset4 layui-col-sm-offset4">
+                <form class="layui-form" action="" style="text-align: right">
+                    <div class="layui-form-item">
+                        <div class="layui-inline" style="text-align: left">
+                              <div class="layui-input-inline" style="width: 150px;">
+                                <input id="kw" class="layui-input" type="text" placeholder="请输入搜索关键词">
+                              </div>
+                          </div>
+                        <i style="font-size: 20px;cursor:pointer " class="layui-icon layui-icon-search" data-type="reload"></i>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="layui-row" style="margin-top: 10px">
+            <div class="layui-col-md12 layui-col-sm12">
+                <table class="layui-table" id="case_table" lay-filter="case-table"></table>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<h3 style="text-align: center; color: #FF5722">请选择所属项目</h3>
+{% endif %}
+
+<script type="text/html" id="bar">
+    <a class="layui-btn layui-btn-sm layui-btn-normal" lay-event="runCase">运行</a>
+    <a class="layui-btn layui-btn-sm" lay-event="editCase" style="text-align:center">编辑用例</a>
+    <a class="layui-btn layui-btn-danger layui-btn-sm" lay-event="delCase" style="text-align:center">删除用例</a>
+</script>
+
+<div style="display: none" id="result">
+    <div class="layui-row">
+        <div class="layui-col-md11">
+            <table class="layui-table" style="margin-left: 20px">
+                <tr>
+                    <td>响应状态码</td>
+                    <td>200</td>
+                </tr>
+                <tr>
+                    <td>响应内容</td>
+                    <td height="200px">==================</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+      table.render({
+        elem: '#case_table'
+        ,url: '/api/case/get_caseinfo/?pid={{ project.id }}'
+        ,page: true
+        ,cols: [[
+           {field: 'id', title: '用例编号', width:120}
+          ,{field: 'name', title: '用例名称', width:320}
+          ,{field: 'api_name', title: '所属接口', width:240}
+          ,{field: 'update_time', title: '更新时间', width: 200, sort: true}
+          ,{fixed: 'right', title: '操作', toolbar: '#bar'}
+        ]]
+      });
+
+ table.on('tool(case-table)', function(obj){
+    var data = obj.data;
+    console.log(data);
+    if(obj.event === 'runCase'){
+<!--      window.location.href = '/case/new/?pid={{ project.id }}&aid=' +data.id;-->
+        $.post('/case/single_run/', {cid: data.id}, function(result){
+            if(result.code == 0){
+                layer.open({
+                    skin: "layui-layer-molv",
+                    title: "执行正确结果",
+                    type: 1,
+                    content: '<table class="layui-table" style="margin-left: 20px"><tr><td>响应状态码</td><td>'+result.status_code+'</td></tr><tr><td>响应内容</td><td height="200px">'+result.content+'</td></tr></table>',
+                    area: ['600px', '350px']
+                });
+            } else if(result.code == 1){
+                layer.open({
+                    skin: "layui-layer-molv",
+                    title: "执行结果",
+                    type: 1,
+                    content: "<h2>"+ result.msg + "</h2>",
+                    area: ['600px', '350px']
+                });
+            }
+        });
+
+    } else if(obj.event === 'delCase'){
+      layer.confirm('真的删除接口信息吗？', function(index){
+        obj.del();
+        layer.close(index);
+      });
+    } else if(obj.event === 'editCase'){
+      layer.alert('编辑行：<br>'+ JSON.stringify(data))
+    }
+  });
+
+
+{% endblock %}

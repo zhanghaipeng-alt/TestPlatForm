@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+
+{% block breadcrumb %}
+<a href="">首页</a>
+<a href="">任务管理</a>
+<a href=""><cite>任务列表</cite></a>
+{% endblock %}
+
+{% block content %}
+
+<div class="layui-card">
+    <div class="layui-card-header">
+        <div class="layui-row">
+            <div class="layui-col-md4 layui-col-sm4">
+                <a href="/task/new/" class="layui-btn">新增任务</a>
+<!--                <button class="layui-btn" id="excel">Excel导入</button>-->
+<!--                <button class="layui-btn">Swagger导入</button>-->
+            </div>
+
+            <div class="layui-col-md4 layui-col-sm4 layui-col-md-offset4 layui-col-sm-offset4">
+                <form class="layui-form" action="" style="text-align: right">
+                    <div class="layui-form-item">
+                        <div class="layui-inline" style="text-align: left">
+                              <div class="layui-input-inline" style="width: 150px;">
+                                <input id="kw" class="layui-input" type="text" placeholder="请输入搜索关键词">
+                              </div>
+                          </div>
+                        <i style="font-size: 20px;cursor:pointer " class="layui-icon layui-icon-search" data-type="reload"></i>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="layui-row" style="margin-top: 10px">
+            <div class="layui-col-md12 layui-col-sm12">
+                <table class="layui-table" id="api_table" lay-filter="api-table"></table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/html" id="bar">
+    <a class="layui-btn layui-btn-sm layui-btn-normal" lay-event="runTask">运行任务</a>
+    <a class="layui-btn layui-btn-sm" lay-event="editTask" style="text-align:center">编辑任务</a>
+    <a class="layui-btn layui-btn-danger layui-btn-sm" lay-event="delTask" style="text-align:center">删除任务</a>
+</script>
+{% endblock%}
+
+{% block js %}
+
+    var method;
+    form.on('select(method)', function(data){
+        method = data.value;
+    });
+
+    $("#excel").click(function(){
+        layer.open({
+          type: 1,
+          title: "Excel批量上传",
+          skin: 'layui-layer-molv',
+          content: $('#excel-form'),
+          area: ['600px', '400px'],
+            });
+        });
+
+
+
+      table.render({
+        elem: '#api_table'
+        ,url: '/task/get_info/'
+        ,page: true
+        ,cols: [[
+           {field: 'id', title: '编号', width:80}
+          ,{field: 'name', title: '任务名称', width:240}
+          ,{field: 'project_name', title: '所属项目', width:240}
+          ,{field: 'update_time', title: '更新时间', width: 280, sort: true}
+          ,{fixed: 'right', title: '操作', toolbar: '#bar'}
+        ]]
+      });
+
+
+
+        var $ = layui.$, active = {
+            reload : function(){
+            var kw = $('#kw').val();
+            table.reload('api_table', {
+                page : {
+                    curr : 1
+                    }
+                ,where : {
+                        kw: kw,
+                        method: method
+                    }
+                }, 'data');
+            }
+        };
+
+
+<!--    $('.layui-icon-search').on('click', function(){-->
+<!--        var type = $(this).data('type');-->
+<!--        active[type] ? active[type].call(this) : '';-->
+<!--    });-->
+
+    $('i.layui-icon-search').on('click', function(){
+    var type = $(this).data('type');
+    active[type] ? active[type].call(this) : '';
+
+  });
+
+
+      table.on('tool(api-table)', function(obj){
+        var data = obj.data;
+        console.log(data);
+        if(obj.event === 'runTask'){
+<!--          window.location.href = '/case/new/?pid={{ project.id }}&aid=' +data.id-->
+            $.post('/task/run/', {}, function(result){
+                layer.msg(result.msg, {time: 2000});
+            });
+        } else if(obj.event === 'del'){
+          layer.confirm('真的删除接口信息吗？', function(index){
+            obj.del();
+            layer.close(index);
+          });
+        } else if(obj.event === 'edit'){
+          layer.alert('编辑行：<br>'+ JSON.stringify(data))
+        }
+      });
+
+    form.on('submit(excel)', function(data){
+<!--        var t = $('#ExcelForm').serializeArray();-->
+<!--        alert(t)-->
+            var formData = new FormData();
+            formData.append("file",$("#fileName")[0].files[0]);
+            formData.append("pid", data.field.pid);
+            formData.append("over", data.field.over);
+            $.ajax({
+                type : "post",
+                url : "/api/upload/",
+                data : formData,
+                processData : false,
+                contentType : false,
+                success : function(data){
+                    if (data.code == 0) {
+                        layer.msg(data.msg, {time: 2000});
+                        setTimeout(function () { window.location.reload();}, 2000);
+                    }else{
+                        layer.msg(data.msg, {time: 2000});
+                }}
+            });
+        return false;
+    });
+{% endblock %}

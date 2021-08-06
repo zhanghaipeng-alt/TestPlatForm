@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+
+{% block breadcrumb %}
+<a href="">首页</a>
+<a href="">数据管理</a>
+<a href=""><cite>数据构造</cite></a>
+{% endblock %}
+
+{% block content %}
+
+<div class="layui-tab">
+  <ul class="layui-tab-title">
+    <li class="layui-this">账号查询</li>
+    <li>账户修改</li>
+    <li>订单查询</li>
+    <li>添加商品信息</li>
+    <li>添加订单信息</li>
+  </ul>
+
+    <div class="layui-tab-content">
+        <div class="layui-tab-item">
+                <div class="layui-row">
+                    <div class="layui-col-md9">
+                        <div class="layui-form-item" style="margin-top: 10px">
+                          <label class="layui-form-label">手机号码</label>
+                          <div class="layui-input-block">
+                            <input type="text" name="mobile" id="mobile" placeholder="请输入手机号码，以英文,分割" autocomplete="off" class="layui-input" value="" >
+                          </div>
+                        </div>
+
+                        <div class="layui-form-item" style="margin-top: 10px">
+                          <label class="layui-form-label">身份证ID</label>
+                          <div class="layui-input-block">
+                            <input type="text" name="idno" id="idno" placeholder="请输入身份证号码，以英文,分割" autocomplete="off" class="layui-input" value="" >
+                          </div>
+                        </div>
+
+                        <div class="layui-form-item">
+                            <div class="layui-input-block">
+                                <button class="layui-btn button-search" data-type="reload">立即提交</button>
+
+                            </div>
+                        </div>
+                </div>
+                    <div class="layui-col-md11">
+                        <table class="layui-table" id="userinfo-table" lay-filter="userinfo-table"></table>
+                    </div>
+            </div>
+        </div>
+        <div class="layui-tab-item">内容3</div>
+        <div class="layui-tab-item">内容4</div>
+        <div class="layui-tab-item">内容5</div>
+  </div>
+</div>
+{% endblock %}
+
+{% block js %}
+
+    table.render({
+        elem: '#userinfo-table'
+        ,url: '/api/data/userInfo/'
+        ,page: true
+        ,cols: [[
+           {field: 'userID', title: 'userID', width: 100}
+          ,{field: 'userTypeID', title: 'userTypeID',width: 80}
+          ,{field: 'mobile', title: 'mobile', width: 120}
+          ,{field: 'is_bindmobile', title: 'is_bindmobile', width: 100}
+          ,{field: 'status', title: 'status', width: 80}
+          ,{field: 'idno', title: 'idno', width: 200}
+          ,{field: 'joyoCode', title: 'joyoCode', width: 100}
+          ,{field: 'parentJoyoCode', title: 'parentJoyoCode', width: 100}
+          ,{field: 'name', title: 'name', width: 100}
+          ,{field: 'new_nick_name', title: 'new_nick_name', width: 160}
+          ,{field: 'staff_id', title: 'staff_id', width: 80}
+          ,{field: 'staff_name', title: 'staff_name', width: 100}
+        ]]
+      });
+
+    var $ = layui.$, active = {
+            reload : function(){
+            var mobile = $('#mobile').val();
+            var idno = $('#idno').val();
+            table.reload('userinfo-table', {
+                page : {
+                    curr : 1
+                    }
+                ,where : {
+                        mobile: mobile,
+                        idno: idno,
+                    }
+                }, 'data');
+            }
+        };
+
+
+
+    $('button.button-search').on('click', function(){
+    var type = $(this).data('type');
+    active[type] ? active[type].call(this) : '';
+  });
+
+
+<!--  layui.use('form', function(){-->
+<!--        form = layui.form-->
+<!--        form.on('submit(getUserInfo)', function(data){-->
+<!--            var t = $('#Form').serializeArray();-->
+<!--            $.post('/api/data/userInfo/', t, function(result){-->
+<!--                if(result.code == 0){-->
+<!--                    layer.msg(result.msg, {time:2000}, function(){-->
+<!--                        window.location.href="/case/list/?pid={{ project.id }}"-->
+<!--                    });-->
+
+<!--                } else if(result.code == 1){-->
+<!--                    layer.msg(result.msg, {time:2000});-->
+<!--                }-->
+<!--                return false;-->
+<!--            });-->
+<!--            return false;-->
+<!--        });-->
+<!--    });-->
+{% endblock %}

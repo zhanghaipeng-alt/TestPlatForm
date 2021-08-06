@@ -1,0 +1,232 @@
+{% extends 'base.html'%}
+
+{% block breadcrumb %}
+    <a href="">首页</a>
+    <a href="">用例管理</a>
+    <a href=""><cite>新增测试用例</cite></a>
+{% endblock %}
+
+{% block content %}
+
+{% if project == None %}
+    <h3 style="color: #FF5727">关联的项目不存在,暂时无法单条新增，请在项目页面进入新增！</h3>
+{% elif api == None %}
+    <h3 style="color: #FF5727">关联的接口不存在，暂时无法单条新增，请在项目页面进入新增！</h3>
+{% else %}
+     <div class="layui-row">
+        <div class="layui-col-md9 lay-col-sm9">
+            <h3>接口信息</h3>
+            <form class="layui-form layui-form-pane" style="margin-top: 10px">
+                <div class="layui-form-item">
+                    <label class="layui-form-label">所属项目：</label>
+                    <div class="layui-input-block">
+                      <input type="text" name="name" autocomplete="off" class="layui-input" value="{{ project.name }}" disabled="disabled">
+                    </div>
+                  </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">接口名称</label>
+                    <div class="layui-input-block">
+                        <input class="layui-input" type="text" name="name" value="{{ api.name }}" disabled="disabled">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">请求地址</label>
+                    <div class="layui-input-block">
+                        <input class="layui-input" type="text" value="{{ api.url }}" disabled="disabled">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">方法类型</label>
+                    <div class="layui-input-block">
+                        {% if api.method == 0 %}
+                            <input disabled="disabled" lay-filter="method" type="radio" name="method" value="0" title="GET" checked>
+                            <input disabled="disabled" lay-filter="method" type="radio" name="method" value="1" title="POST">
+                        {% elif api.method == 1 %}
+                            <input disabled="disabled" lay-filter="method" type="radio" name="method" value="0" title="GET" >
+                            <input disabled="disabled" lay-filter="method" type="radio" name="method" value="1" title="POST" checked>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="layui-form-item  body-type">
+                    <label class="layui-form-label">正文格式</label>
+                    <div class="layui-input-block">
+                        {% if api.body_type == 0 %}
+                            <input disabled="disabled" lay-filter="body-style" type="radio" name="body-type" value="0" title="NONE" checked>
+                            <input disabled="disabled" lay-filter="body-style" type="radio" name="body-type" value="1" title="URL-ENCODE">
+                            <input disabled="disabled" lay-filter="body-style" type="radio" name="body-type" value="2" title="JSON">
+                        {% elif api.body_type == 1 %}
+                            <input disabled="disabled" lay-filter="body-style" type="radio" name="body-type" value="0" title="NONE">
+                            <input disabled="disabled" lay-filter="body-style" type="radio" name="body-type" value="1" title="URL-ENCODE" checked>
+                            <input disabled="disabled" lay-filter="body-style" type="radio" name="body-type" value="2" title="JSON">
+                        {% elif api.body_type == 2 %}
+                            <input disabled="disabled" lay-filter="body-style" type="radio" name="body-type" value="0" title="NONE" >
+                            <input disabled="disabled" lay-filter="body-style" type="radio" name="body-type" value="1" title="URL-ENCODE">
+                            <input disabled="disabled" lay-filter="body-style" type="radio" name="body-type" value="2" title="JSON" checked>
+                        {% endif %}
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <hr align="center" width="900px" color="#987cb9" size="1">
+    <h3>用例信息</h3>
+    <div class="layui-row">
+        <div class="layui-col-md9 lay-col-sm9">
+            <form class="layui-form layui-form-pane" id="Form" style="margin-top: 10px">
+                <div class="layui-form-item">
+                    <label class="layui-form-label">用例名称</label>
+                    <div class="layui-input-block">
+                        <input style="display: none" name="pid" value="{{ project.id }}" class="layui-input">
+                        <input style="display: none" name="aid" value="{{ api.id }}" class="layui-input">
+                        <input class="layui-input" type="text" required lay-verify="required" name="caseName" placeholder="请输入用例名称">
+                    </div>
+                </div>
+
+                <div class="layui-form-item" >
+                    <label class="layui-form-label">用例描述</label>
+                    <div class="layui-input-block">
+                        <input class="layui-input" type="text" name="caseDesc" placeholder="请输入用例描述">
+                    </div>
+                </div>
+
+                {% if header|length > 0 %}
+                    {% for key, value in header.items %}
+                        {% if forloop.first%}
+                            <div class="layui-form-item header-first">
+                              <label class="layui-form-label add-header" style="cursor: pointer">请求头：</label>
+                              <div class="layui-input-block">
+                                <div class="layui-input-inline" style="width: 47%;">
+                                  <input type="text" name="header_key" value="{{ key }}" placeholder="Key" autocomplete="off" class="layui-input">
+                                </div>
+                                <div class="layui-input-inline" style="width: 47%;">
+                                  <input type="text" name="header_value" value="{{ value }}" placeholder="Value" autocomplete="off" class="layui-input">
+                                </div>
+                              </div>
+                            </div>
+                        {% else%}
+
+                                <div class="layui-form-item header-second">
+                                  <label class="layui-form-label" style="cursor: pointer">
+                                      <i class="layui-icon layui-icon-reduce-circle"  style="cursor: pointer; color: #FF5722"></i>
+                                  </label>
+                                  <div class="layui-input-block">
+                                    <div class="layui-input-inline" style="width: 47%;">
+                                      <input type="text" name="header_key" value="{{ key }}" placeholder="Key" autocomplete="off" class="layui-input">
+                                    </div>
+                                    <div class="layui-input-inline" style="width: 47%;">
+                                      <input type="text" name="header_value" value="{{ value }}" placeholder="Value" autocomplete="off" class="layui-input">
+                                    </div>
+                                  </div>
+                                </div>
+
+                        {% endif %}
+                    {% endfor %}
+                {% else %}
+                    <div class="layui-form-item">
+                          <label class="layui-form-label" style="cursor: pointer">请求头：</label>
+                          <div class="layui-input-block">
+                            <div class="layui-input-inline" style="width: 47%;">
+                              <input type="text" name="header_key" placeholder="Key" autocomplete="off" class="layui-input">
+                            </div>
+                            <div class="layui-input-inline" style="width: 47%;">
+                              <input type="text" name="header_value" placeholder="Value" autocomplete="off" class="layui-input">
+                            </div>
+                          </div>
+                        </div>
+                {% endif %}
+
+                <div class="header-addon" style="display: none">
+                    <div class="layui-form-item">
+                      <label class="layui-form-label" style="cursor: pointer">
+                          <i class="layui-icon layui-icon-reduce-circle" style="cursor: pointer; color: #FF5722"></i>
+                      </label>
+                      <div class="layui-input-block">
+                        <div class="layui-input-inline" style="width: 47%;">
+                          <input type="text" name="header_key" placeholder="Key" autocomplete="off" class="layui-input">
+                        </div>
+                        <div class="layui-input-inline" style="width: 47%;">
+                          <input type="text" name="header_value" placeholder="Value" autocomplete="off" class="layui-input">
+                        </div>
+                      </div>
+                    </div>
+                </div>
+
+                <div class="layui-form-item layui-form-text">
+                    <label class="layui-form-label">请求参数</label>
+                    <div class="layui-input-block">
+                        <textarea style="height: 120px" name="body" placeholder="url-encode的正文格式如：a=1&b=2" class="layui-textarea">{{ api.body}}</textarea>
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                  <label class="layui-form-label add-assert" style="cursor: pointer">响应状态码</label>
+                  <div class="layui-input-block">
+                    <div class="layui-input-inline" style="width: 47%;">
+                      <input type="text" name="status-code" placeholder="响应状态码" autocomplete="off" class="layui-input">
+                    </div>
+                  </div>
+                </div>
+
+                <div class="layui-form-item assert-first">
+                  <label class="layui-form-label add-assert" style="cursor: pointer">响应值</label>
+                  <div class="layui-input-block">
+                    <div class="layui-input-inline" style="width: 47%;">
+                      <input type="text" name="assert-key" placeholder="json路径" autocomplete="off" class="layui-input">
+                    </div>
+                    <div class="layui-input-inline" style="width: 47%;">
+                      <input type="text" name="assert-value" placeholder="预期值" autocomplete="off" class="layui-input">
+                    </div>
+                  </div>
+                </div>
+
+
+                <div class="layui-form-item" style="margin-top: 50px">
+                    <div class="layui-input-block">
+                      <button type="submit" class="layui-btn" lay-submit lay-filter="add">立即提交</button>
+                      <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endif %}
+
+{% endblock %}
+
+{% block js %}
+    $(".add-assert").click(function(){
+        $(".assert-first").after($(".assert-addon").html());
+    });
+
+    $(".add-header").click(function(){
+        $(".header-first").after($(".header-addon").html());
+    });
+
+    $(document).on("click", ".layui-icon-reduce-circle", function(){
+        $(this).parent().parent().remove();
+    });
+
+    layui.use('form', function(){
+        form = layui.form
+        form.on('submit(add)', function(data){
+            var t = $('#Form').serializeArray();
+            $.post('/api/case/new/', t, function(result){
+                if(result.code == 0){
+                    layer.msg(result.msg, {time:2000}, function(){
+                        window.location.href="/case/list/?pid={{ project.id }}"
+                    });
+
+                } else if(result.code == 1){
+                    layer.msg(result.msg, {time:2000});
+                }
+                return false;
+            });
+            return false;
+        });
+    });
+
+{% endblock %}

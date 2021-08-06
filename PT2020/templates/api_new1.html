@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+
+{% block breadcrumb %}
+<a href="">首页</a>
+<a href="">接口管理</a>
+<a href=""><cite>手动单条新增</cite></a>
+{% endblock %}
+
+
+{% block content %}
+{% if project != None %}
+    <div class="layui-row">
+        <div class="layui-col-md9 lay-col-sm9">
+            <form class="layui-form layui-form-pane" action="/api/add/" method="post" id="Form">
+                <div class="layui-form-item">
+                    <label class="layui-form-label">所属项目：</label>
+                    <div class="layui-input-block">
+                      <input style="display: none" type="text" name="pid" value="{{ project.id }}" class="layui-input">
+                      <input type="text" name="name" autocomplete="off" class="layui-input" value="{{ project.name }}" disabled="disabled">
+                    </div>
+                  </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">接口名称</label>
+                    <div class="layui-input-block">
+                        <input class="layui-input" type="text" name="name" required lay-verify="required" placeholder="最大长度为20" autocomplete="off">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">接口描述</label>
+                    <div class="layui-input-block">
+                        <input class="layui-input" name="desc" type="text" placeholder="最大长度30字符" required lay-verify="required">
+                    </div>
+                </div>
+
+                <div class="layui-form-item header-first">
+                  <label class="layui-form-label add-header" style="cursor: pointer">请求头：</label>
+                  <div class="layui-input-block">
+                    <div class="layui-input-inline" style="width: 47%;">
+                      <input type="text" name="header_key" placeholder="Key" autocomplete="off" class="layui-input">
+                    </div>
+                    <div class="layui-input-inline" style="width: 47%;">
+                      <input type="text" name="header_value" placeholder="Value" autocomplete="off" class="layui-input">
+                    </div>
+                  </div>
+                </div>
+                <div class="header-addon" style="display: none">
+                    <div class="layui-form-item">
+                      <label class="layui-form-label" style="cursor: pointer">
+                          <i class="layui-icon layui-icon-reduce-circle" style="cursor: pointer; color: #FF5722"></i>
+                      </label>
+                      <div class="layui-input-block">
+                        <div class="layui-input-inline" style="width: 47%;">
+                          <input type="text" name="header_key" placeholder="Key" autocomplete="off" class="layui-input">
+                        </div>
+                        <div class="layui-input-inline" style="width: 47%;">
+                          <input type="text" name="header_value" placeholder="Value" autocomplete="off" class="layui-input">
+                        </div>
+                      </div>
+                    </div>
+                </div>
+
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">请求地址</label>
+                    <div class="layui-input-block">
+                      <input lay-verify="required" placeholder="请输入URL地址" type="text" name="url" autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">方法类型</label>
+                    <div class="layui-input-block">
+                        <input lay-filter="method" type="radio" name="method" value="0" title="GET" checked>
+                        <input lay-filter="method" type="radio" name="method" value="1" title="POST">
+                    </div>
+                </div>
+
+                <div class="layui-form-item  body-type" style="display: none">
+                    <label class="layui-form-label">正文格式</label>
+                    <div class="layui-input-block">
+                        <input lay-filter="body-style" type="radio" name="body-type" value="0" title="NONE" checked>
+                        <input lay-filter="body-style" type="radio" name="body-type" value="1" title="URL-ENCODE">
+                        <input lay-filter="body-style" type="radio" name="body-type" value="2" title="JSON">
+                    </div>
+                </div>
+
+                <div class="layui-form-item layui-form-text" style="display: none">
+                    <label class="layui-form-label">请求正文</label>
+                    <div class="layui-input-block">
+                        <textarea style="height: 120px" name="body" placeholder="url-encode的正文格式如：a=1&b=2" class="layui-textarea"></textarea>
+                    </div>
+                </div>
+
+                <div class="layui-form-item" style="margin-top: 50px">
+                    <div class="layui-input-block">
+                      <button type="submit" class="layui-btn" lay-submit lay-filter="add">立即提交</button>
+                      <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+{% else %}
+    <h3 style="text-align: center; color: #FF5722">项目不存在</h3>
+{% endif %}
+{% endblock %}
+
+{% block js %}
+    $(".add-header").click(function(){
+        $(".header-first").after($(".header-addon").html());
+    });
+
+    $(document).on("click", ".layui-icon-reduce-circle", function(){
+        $(this).parent().parent().remove();
+    });
+
+    layui.use('form', function(){
+        form = layui.form
+        form.on('radio(method)', function(data){
+<!--          alert(data.value);-->
+            if(data.value == 0){
+                $(".body-type").hide();
+            } else if(data.value == 1){
+                $(".body-type").show();
+            }
+        });
+    });
+
+    layui.use('form', function(){
+        form = layui.form
+        form.on('radio(body-style)', function(data){
+            if(data.value == 0){
+                $(".layui-form-text").hide();
+            } else if(data.value == 1){
+                $(".layui-form-text").show();
+            } else if(data.value == 2){
+                $(".layui-form-text").show();
+            } else {
+                alert("无效值");
+            }
+        });
+    });
+
+    layui.use('form', function(){
+        form = layui.form
+        form.on('submit(add)', function(data){
+            var t = $('#Form').serializeArray();
+            $.post('/api/add/', t, function(result){
+                if(result.code == 0){
+                    layer.msg(result.msg, {time:2000}, function(){
+                        window.location.href="/api/?pid={{ project.id }}"
+                    });
+
+                } else if(result.code == 1){
+                    layer.msg(result.msg, {time:2000});
+                }
+                return false;
+            });
+            return false;
+        });
+    });
+{% endblock%}

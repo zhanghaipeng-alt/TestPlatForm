@@ -1,0 +1,259 @@
+{% extends 'base.html' %}
+
+{% block breadcrumb %}
+<a href="">首页</a>
+<a href="">接口管理</a>
+<a href=""><cite>接口信息编辑</cite></a>
+{% endblock %}
+
+{% block content %}
+<div class="layui-row" style="margin-top: 20px">
+    <div class="layui-col-md7 layui-col-sm7">
+    <form class="layui-form layui-form-pane" action="/api/new/add/" method="post"> <!-- 提示：如果你不想用form，你可以换成div等任何一个普通元素 -->
+      <div class="layui-form-item">
+        <label class="layui-form-label">所属项目：</label>
+        <div class="layui-input-block">
+          <input style="display: none" type="text" name="pid" value="{{ project.id }}" class="layui-input">
+          <input style="display: none" type="text" name="id" value="{{ api.id }}" class="layui-input">
+          <input type="text" name="pname" autocomplete="off" class="layui-input" value="{{ project.name }}" disabled="disabled">
+        </div>
+      </div>
+      <div class="layui-form-item">
+        <label class="layui-form-label">接口名称：</label>
+        <div class="layui-input-block">
+          <input lay-verify="required" type="text" name="name" autocomplete="off" class="layui-input" value="{{ api.name }}">
+        </div>
+      </div>
+      <div class="layui-form-item">
+        <label class="layui-form-label">描述：</label>
+        <div class="layui-input-block">
+          <input type="text" name="desc" autocomplete="off" class="layui-input" value="{{ api.desc }}">
+        </div>
+      </div>
+      <div class="layui-form-item">
+        <label class="layui-form-label">请求地址：</label>
+        <div class="layui-input-block">
+          <input lay-verify="required" type="text" name="url" autocomplete="off" class="layui-input" value="{{ api.url }}">
+        </div>
+      </div>
+
+    {% if headers|length > 0 %}
+    {% for key,value in headers.items %}
+      {% if forloop.first %}
+        <div class="layui-form-item header-first">
+          <label class="layui-form-label add-header" style="cursor: pointer">请求头：</label>
+          <div class="layui-input-block">
+            <div class="layui-input-inline" style="width: 47%;">
+              <input type="text" name="header_key" placeholder="Key" value="{{ key }}" autocomplete="off" class="layui-input">
+            </div>
+            <div class="layui-input-inline" style="width: 47%;">
+              <input type="text" name="header_value" placeholder="Value" value="{{ value }}" autocomplete="off" class="layui-input">
+            </div>
+          </div>
+        </div>
+      {% else %}
+          <div class="layui-form-item">
+          <label class="layui-form-label" style="text-align: left">
+              <i class="layui-icon layui-icon-add-circle add-header" style="cursor:pointer; color: #5FB878;margin-left: 10px"></i>
+              <i class="layui-icon layui-icon-reduce-circle delete-key-value" style="cursor:pointer;color: #FF5722;margin-left: 10px"></i>
+          </label>
+          <div class="layui-input-block">
+            <div class="layui-input-inline" style="width: 47%;">
+              <input type="text" name="header_key" placeholder="Key" value="{{ key }}" autocomplete="off" class="layui-input">
+            </div>
+            <div class="layui-input-inline" style="width: 47%;">
+              <input type="text" name="header_value" placeholder="Value" value="{{ value }}" autocomplete="off" class="layui-input">
+            </div>
+          </div>
+      </div>
+      {% endif %}
+      {% endfor %}
+    {% else %}
+        <div class="layui-form-item header-first">
+          <label class="layui-form-label add-header" style="cursor: pointer">请求头：</label>
+          <div class="layui-input-block">
+            <div class="layui-input-inline" style="width: 47%;">
+              <input type="text" name="header_key" placeholder="Key" autocomplete="off" class="layui-input">
+            </div>
+            <div class="layui-input-inline" style="width: 47%;">
+              <input type="text" name="header_value" placeholder="Value" autocomplete="off" class="layui-input">
+            </div>
+          </div>
+      </div>
+    {% endif %}
+
+      <div class="layui-form-item">
+        <label class="layui-form-label">方法类型：</label>
+        <div class="layui-input-block">
+          {% if api.method == 0 %}
+          <input type="radio" lay-filter="mradio" name="method" value="0" title="GET" checked>
+          <input type="radio" lay-filter="mradio" name="method" value="1" title="POST">
+          {% elif api.method == 1 %}
+          <input type="radio" lay-filter="mradio" name="method" value="0" title="GET">
+          <input type="radio" lay-filter="mradio" name="method" value="1" title="POST" checked>
+          {% endif %}
+        </div>
+      </div>
+      <div class="layui-form-item body-type">
+        <label class="layui-form-label">正文类型：</label>
+        <div class="layui-input-block">
+          {% if api.body_type == 0 %}
+          <input type="radio" lay-filter="term" name="body-type" value="0" title="NONE" checked>
+          <input type="radio" lay-filter="term" name="body-type" value="1" title="FORM">
+          <input type="radio" lay-filter="term" name="body-type" value="2" title="JSON">
+          {% elif  api.body_type == 1 %}
+          <input type="radio" lay-filter="term" name="body-type" value="0" title="NONE">
+          <input type="radio" lay-filter="term" name="body-type" value="1" title="FORM" checked>
+          <input type="radio" lay-filter="term" name="body-type" value="2" title="JSON">
+          {% elif  api.body_type == 2 %}
+          <input type="radio" lay-filter="term" name="body-type" value="0" title="NONE">
+          <input type="radio" lay-filter="term" name="body-type" value="1" title="FORM">
+          <input type="radio" lay-filter="term" name="body-type" value="2" title="JSON" checked>
+          {% endif %}
+        </div>
+      </div>
+      <div class="layui-form-item url-params" style="display: none">
+          <label class="layui-form-label add-url-params" style="cursor: pointer">正文参数：</label>
+          <div class="layui-input-block">
+            <div class="layui-input-inline" style="width: 47%;">
+              <input type="text" name="url-params-key" placeholder="Key" autocomplete="off" class="layui-input">
+            </div>
+            <div class="layui-input-inline" style="width: 47%;">
+              <input type="text" name="url-params-value" placeholder="Value" autocomplete="off" class="layui-input">
+            </div>
+          </div>
+      </div>
+      <div class="layui-form-item form-params" style="display: none">
+          <label class="layui-form-label add-form-params" style="cursor: pointer">正文参数：</label>
+          <div class="layui-input-block">
+            <textarea type="text" name="form-value" style="height: 200px;" class="layui-textarea"></textarea>
+          </div>
+      </div>
+      <div class="layui-form-item json-params" style="display: none">
+        <label class="layui-form-label">正文参数：</label>
+        <div class="layui-input-block">
+            <textarea type="text" name="json-value" style="height: 200px;" class="layui-textarea"></textarea>
+        </div>
+      </div>
+      <div class="layui-form-item" style="margin-top: 50px">
+        <div class="layui-input-block">
+          <button class="layui-btn" lay-submit lay-filter="*">立即提交</button>
+          <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+        </div>
+      </div>
+      <!-- 更多表单结构排版请移步文档左侧【页面元素-表单】一项阅览 -->
+    </form>
+    <div style="display: none" class="header-input">
+        <div class="layui-form-item">
+          <label class="layui-form-label" style="text-align: left">
+              <i class="layui-icon layui-icon-add-circle add-header" style="cursor:pointer; color: #5FB878;margin-left: 10px"></i>
+              <i class="layui-icon layui-icon-reduce-circle delete-key-value" style="cursor:pointer;color: #FF5722;margin-left: 10px"></i>
+          </label>
+          <div class="layui-input-block">
+            <div class="layui-input-inline" style="width: 47%;">
+              <input type="text" name="header_key" placeholder="Key" autocomplete="off" class="layui-input">
+            </div>
+            <div class="layui-input-inline" style="width: 47%;">
+              <input type="text" name="header_value" placeholder="Value" autocomplete="off" class="layui-input">
+            </div>
+          </div>
+      </div>
+      </div>
+    <div style="display: none" class="url-params-input">
+        <div class="layui-form-item params-new">
+          <label class="layui-form-label" style="text-align: left">
+              <i class="layui-icon layui-icon-add-circle add-url-params" style="cursor:pointer; color: #5FB878;margin-left: 10px"></i>
+              <i class="layui-icon layui-icon-reduce-circle delete-key-value" style="cursor:pointer;color: #FF5722;margin-left: 10px"></i>
+          </label>
+          <div class="layui-input-block">
+            <div class="layui-input-inline" style="width: 47%;">
+              <input type="text" name="url-params-key" placeholder="Key" autocomplete="off" class="layui-input">
+            </div>
+            <div class="layui-input-inline" style="width: 47%;">
+              <input type="text" name="url-params-value" placeholder="Value" autocomplete="off" class="layui-input">
+            </div>
+          </div>
+      </div>
+      </div>
+    <div style="display: none" class="form-params-input">
+        <div class="layui-form-item params-new">
+          <label class="layui-form-label" style="text-align: left">
+              <i class="layui-icon layui-icon-add-circle add-form-params" style="cursor:pointer; color: #5FB878;margin-left: 10px"></i>
+              <i class="layui-icon layui-icon-reduce-circle delete-key-value" style="cursor:pointer;color: #FF5722;margin-left: 10px"></i>
+          </label>
+          <div class="layui-input-block">
+            <div class="layui-input-inline" style="width: 47%;">
+              <input type="text" name="form-params-key" placeholder="Key" autocomplete="off" class="layui-input">
+            </div>
+            <div class="layui-input-inline" style="width: 47%;">
+              <input type="text" name="form-params-value" placeholder="Value" autocomplete="off" class="layui-input">
+            </div>
+          </div>
+      </div>
+      </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+    if({{ api.body_type }} == 1){
+        $(".form-params").show();
+        var a = '{{ api.body|safe }}'
+        $("textarea[name='form-value']").text(a);
+    }else if ({{ api.body_type }} == 2){
+        $(".json-params").show();
+        var a = '{{ api.body|safe }}'
+        $("textarea[name='json-value']").text(a);
+    }
+
+    form.on('radio(mradio)', function(data){
+        if (data.value == 1){
+            $(".body-type").show();
+        }else{
+            $(".body-type").hide();
+        }
+    });
+
+    form.on('radio(term)', function(data){
+        $(".url-params").hide();
+        $(".form-params").hide();
+        $(".json-params").hide();
+        if (data.value == 1){
+            $(".form-params").show();
+            $("textarea[name='json']").attr("lay-verify", "");
+        } else if (data.value == 2){
+            $(".json-params").show();
+            $("textarea[name='json-value']").attr("lay-verify", "required");
+        }
+    });
+
+    $("form").on("click",".add-header", function(){
+        $(".header-first").after($(".header-input").html());
+    });
+
+    $("form").on("click",".add-url-params", function(){
+        $(".url-params").after($(".url-params-input").html());
+    });
+
+    $("form").on("click",".add-form-params", function(){
+        $(".form-params").after($(".form-params-input").html());
+    });
+
+    $("form").on("click",".delete-key-value", function(){
+        $(this).parent().parent().remove();
+    });
+
+    form.on('submit(*)', function(data){
+      var formData = {};
+      var t = $('form').serializeArray();
+      $.post('/api/edit/', t, function (result) {
+        if (result.code == 0){
+             layer.msg(result.msg, {time: 2000});
+             setTimeout(function () { window.location.href="/api/?pid={{ project.id }}"}, 2000);
+        }else if(result.code == 1){
+            layer.msg(result.msg, {time: 2000});
+        }
+      });
+      return false;
+    });
+{% endblock %}

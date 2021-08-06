@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block breadcrumb %}
+<a href="">首页</a>
+<a href="">测试计划管理</a>
+<a href=""><cite>创建任务</cite></a>
+{% endblock %}
+
+{% block content %}
+<div class="layui-row" style="margin-top: 20px">
+    <div class="layui-col-md7 layui-col-sm7">
+        <form class="layui-form layui-form-pane" action="/plan/add/" method="post"> <!-- 提示：如果你不想用form，你可以换成div等任何一个普通元素 -->
+          <div class="layui-form-item">
+            <label class="layui-form-label">所属项目：</label>
+            <div class="layui-input-block">
+                <select name="pid" lay-verify="required" lay-filter="project">
+                    <option value="" selected="selected">请选择项目</option>
+                    {% for prjoect in projects %}
+                        <option value="{{prjoect.id}}">{{prjoect.name}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+          </div>
+          <div class="layui-form-item">
+            <label class="layui-form-label">任务名称：</label>
+            <div class="layui-input-block">
+              <input lay-verify="required" type="text" name="name" autocomplete="off" class="layui-input">
+            </div>
+          </div>
+          <div class="layui-form-item">
+            <label class="layui-form-label">描述：</label>
+            <div class="layui-input-block">
+              <input type="text" name="desc" autocomplete="off" class="layui-input">
+            </div>
+          </div>
+          <div class="layui-form-item">
+              <label class="layui-form-label" style="cursor: pointer">关联用例：</label>
+              <table class="layui-table" id="cases"></table>
+          </div>
+          <div class="layui-form-item" style="margin-top: 50px">
+        <div class="layui-input-block">
+          <button class="layui-btn" id="confirm" lay-submit lay-filter="*" data-type="getCheckData">立即提交</button>
+          <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+        </div>
+      </div>
+        </form>
+    </div>
+
+    <table class="layui-table" id="cases"></table>
+</div>
+{% endblock %}
+
+{% block js %}
+var pid = "0";
+var table;
+var cases = [];
+
+layui.use('table', function(){
+  table = layui.table;
+  table.render({
+    elem: '#cases'
+    ,url: '/case/get_infos/'
+    ,cols: [[
+      {checkbox: true}
+      ,{field:'id', width:80, title: 'ID', sort: true}
+      ,{field:'aname', title: '所属接口'}
+      ,{field:'name', title: '用例名称'}
+    ]]
+    ,page: true
+    ,id: 'testReload'
+  });
+
+  var $ = layui.$, active = {
+    getCheckData: function(){ //获取选中数据
+      cases = [];
+      var checkStatus = table.checkStatus('testReload')
+      ,data = checkStatus.data;
+      for(var i in data){
+        cases.push(data[i].id)
+      }
+    }
+  };
+
+  form.on('submit(*)', function(data){
+    var type = $(this).data('type');
+        active[type] ? active[type].call(this) : '';
+        var cases_number = cases.join(",");
+        $.post('/plan/add/', {pid: data.field.pid, cases_number:cases_number, name:data.field.name, desc:data.field.desc}, function (result) {
+            if (result.code == 0){
+                 layer.msg(result.msg, {time: 2000});
+                 setTimeout(function () { window.location.href="/plan/list/"}, 2000);
+            }else if(result.code == 1){
+                layer.msg(result.msg, {time: 2000});
+            }
+        });
+        return false;
+    });
+  });
+
+form.on('select(project)', function(data){
+    pid = data.value;
+    table.reload('testReload', {
+        page: {
+          curr: 1 //重新从第 1 页开始
+        }
+        ,where: {
+            project: pid
+        }
+      }, 'data');
+});
+
+
+{% endblock %}
